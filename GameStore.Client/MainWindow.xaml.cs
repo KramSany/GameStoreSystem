@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
-using System.Threading.Tasks;
 using GameStore.Database.Models;
 using System.Windows.Controls;
 
@@ -31,7 +30,6 @@ namespace GameStore.Client
             UpdateUserInfo();
         }
 
-        // 🔹 Загрузка игр из API
         private async Task LoadGamesAsync()
         {
             StatusText.Text = "🔄 Загрузка игр...";
@@ -56,7 +54,6 @@ namespace GameStore.Client
             }
         }
 
-        // 🔹 Загрузка библиотеки пользователя
         private async Task LoadUserLibraryAsync()
         {
             if (CurrentUser == null) return;
@@ -67,7 +64,7 @@ namespace GameStore.Client
             {
                 var library = await _apiService.GetUserLibraryAsync(CurrentUser.UserId);
 
-                // Здесь можно обновить интерфейс библиотеки
+                
                 StatusText.Text = $"✅ В библиотеке {library.Count} игр";
             }
             catch (Exception ex)
@@ -92,14 +89,14 @@ namespace GameStore.Client
             }
         }
 
-        // Перетаскивание окна
+        
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
                 DragMove();
         }
 
-        // Кнопки управления окном
+        
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
@@ -110,7 +107,7 @@ namespace GameStore.Client
             Application.Current.Shutdown();
         }
 
-        // Навигация
+        
         private async void HomeButton_Click(object sender, RoutedEventArgs e)
         {
             ContentTitle.Text = "🏠 Главная";
@@ -146,7 +143,7 @@ namespace GameStore.Client
             if (CurrentUser != null)
             {
                 StatusText.Text = $"Профиль пользователя: {CurrentUser.Login}";
-                // Здесь можно открыть окно редактирования профиля
+                
             }
             else
             {
@@ -154,7 +151,7 @@ namespace GameStore.Client
             }
         }
 
-        // Поиск
+        
         private async void SearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             var searchText = SearchTextBox.Text.ToLower();
@@ -165,7 +162,7 @@ namespace GameStore.Client
                 return;
             }
 
-            // Фильтрация на клиенте (можно сделать на сервере)
+            
             try
             {
                 var allGames = await _apiService.GetGamesAsync();
@@ -187,7 +184,7 @@ namespace GameStore.Client
             }
         }
 
-        // Покупка игры
+        
         private async void BuyButton_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentUser == null)
@@ -204,7 +201,7 @@ namespace GameStore.Client
             {
                 try
                 {
-                    // Создаем запись в библиотеке
+                    
                     var userLibrary = new UserLibrary
                     {
                         UserId = CurrentUser.UserId,
@@ -234,17 +231,9 @@ namespace GameStore.Client
             }
         }
 
-        // 🔐 Кнопка входа
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
-            //var loginWindow = new LoginWindow(_apiService);
-            //loginWindow.UserAuthenticated += (user) =>
-            //{
-            //    CurrentUser = user;
-            //    UpdateUserInfo();
-            //    StatusText.Text = $"✅ Добро пожаловать, {user.Login}!";
-            //};
-            //loginWindow.ShowDialog();
+            
         }
     }
 }

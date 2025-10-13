@@ -1,15 +1,10 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-using GameStore.Client;
+﻿using System.Windows;
+using GameStore.Client.Pages;
 
 namespace GameStore.Client
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
+       
     }
-
 }
