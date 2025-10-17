@@ -12,15 +12,18 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using GameStore.Database.Models;
 
 namespace GameStore.Client.Pages
 {
     /// <summary>
     /// Логика взаимодействия для LoginPage.xaml
     /// </summary>
-    public partial class LoginPage : Page
+    public partial class LoginPage : Window
     {
         private readonly ApiService _apiService;
+
+        private User _authUser; 
 
         public LoginPage()
         {
@@ -29,6 +32,15 @@ namespace GameStore.Client.Pages
 
             
             Loaded += (s, e) => LoginTextBox.Focus();
+        }
+
+        // Получение юзера
+        public User AuthUser
+        {
+            get
+            {
+                return _authUser;
+            }
         }
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
@@ -95,11 +107,9 @@ namespace GameStore.Client.Pages
                     MessageBox.Show($"Успешный вход!\nБаланс: {user.Balance} ₽", "Добро пожаловать!",
                                   MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    
-                    if (NavigationService != null)
-                    {
-                        NavigationService.Navigate(new MainWindow());
-                    }
+                    _authUser = user;
+
+                    Close();
                 }
                 else
                 {
@@ -173,6 +183,7 @@ namespace GameStore.Client.Pages
                 System.Windows.Media.Color.FromRgb(255, 100, 100));
         }
 
+        
         
     }
 }

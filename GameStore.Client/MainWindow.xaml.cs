@@ -2,7 +2,9 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using GameStore.Database.Models;
+using GameStore.Client.Pages;
 using System.Windows.Controls;
 
 namespace GameStore.Client
@@ -16,18 +18,37 @@ namespace GameStore.Client
         public MainWindow()
         {
             InitializeComponent();
+            
+            LoginPage loginPage = new LoginPage();
+            loginPage.ShowDialog();
+            IsUser(loginPage);
 
             _apiService = new ApiService();
             Games = new ObservableCollection<Game>();
             GamesItemsControl.ItemsSource = Games;
 
+
+            MainMenuBtn.Checked += MainMenuBtn_Checked;
+            AllGamesBtn.Checked += AllGamesBtn_Checked;
+            LibraryBtn.Checked += LibraryBtn_Checked;
+            ProfileBtn.Checked += ProfileBtn_Checked;
+
             Loaded += MainWindow_Loaded;
+        }
+
+        private void IsUser(LoginPage loginPage)
+        {
+            if (loginPage.AuthUser == null)
+                this.Close();
+            else
+                CurrentUser = loginPage.AuthUser;
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadGamesAsync();
             UpdateUserInfo();
+            UpdateContent();
         }
 
         private async Task LoadGamesAsync()
@@ -64,7 +85,12 @@ namespace GameStore.Client
             {
                 var library = await _apiService.GetUserLibraryAsync(CurrentUser.UserId);
 
-                
+                Games.Clear();
+                foreach (var obj in library)
+                {
+                    Games.Add(obj.Game);
+                }
+
                 StatusText.Text = $"✅ В библиотеке {library.Count} игр";
             }
             catch (Exception ex)
@@ -89,14 +115,44 @@ namespace GameStore.Client
             }
         }
 
-        
+        private void UpdateContent()
+        {
+            if (ProfileBtn.IsChecked == true)
+            {
+                ProfileSection.Visibility = Visibility.Visible;
+                ContentTitle.Text = "👤 Профиль";
+                StatusText.Text = "Просмотр профиля пользователя";
+
+                Games.Clear();
+            }
+            else
+            {
+                ProfileSection.Visibility = Visibility.Collapsed;
+
+                if (MainMenuBtn.IsChecked == true)
+                {
+                    ContentTitle.Text = "🏠 Главная";
+                    StatusText.Text = "Добро пожаловать в GameStore!";
+                }
+                else if (AllGamesBtn.IsChecked == true)
+                {
+                    ContentTitle.Text = "🎮 Все игры";
+                    StatusText.Text = "Просмотр каталога игр";
+                }
+                else if (LibraryBtn.IsChecked == true)
+                {
+                    ContentTitle.Text = "📚 Моя библиотека";
+                    StatusText.Text = "Просмотр вашей игровой библиотеки";
+                }
+            }
+        }
+
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
                 DragMove();
         }
 
-        
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
@@ -106,25 +162,22 @@ namespace GameStore.Client
         {
             Application.Current.Shutdown();
         }
-
-        
-        private async void HomeButton_Click(object sender, RoutedEventArgs e)
+        private async void MainMenuBtn_Checked(object sender, RoutedEventArgs e)
         {
-            ContentTitle.Text = "🏠 Главная";
-            StatusText.Text = "Переход на главную страницу";
+            UpdateContent();
             await LoadGamesAsync();
         }
 
-        private async void GamesButton_Click(object sender, RoutedEventArgs e)
+        private async void AllGamesBtn_Checked(object sender, RoutedEventArgs e)
         {
-            ContentTitle.Text = "🎮 Все игры";
-            StatusText.Text = "Загрузка списка игр...";
+            UpdateContent();
             await LoadGamesAsync();
         }
 
-        private async void LibraryButton_Click(object sender, RoutedEventArgs e)
+        private async void LibraryBtn_Checked(object sender, RoutedEventArgs e)
         {
-            ContentTitle.Text = "📚 Моя библиотека";
+            UpdateContent();
+
             if (CurrentUser != null)
             {
                 await LoadUserLibraryAsync();
@@ -134,37 +187,46 @@ namespace GameStore.Client
                 StatusText.Text = "❌ Войдите в систему для просмотра библиотеки";
                 MessageBox.Show("Пожалуйста, войдите в систему", "Авторизация",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                AllGamesBtn.IsChecked = true;
             }
         }
 
-        private void ProfileButton_Click(object sender, RoutedEventArgs e)
+        private void ProfileBtn_Checked(object sender, RoutedEventArgs e)
         {
-            ContentTitle.Text = "👤 Профиль";
-            if (CurrentUser != null)
+            if (CurrentUser == null)
             {
-                StatusText.Text = $"Профиль пользователя: {CurrentUser.Login}";
-                
+                StatusText.Text = "❌ Войдите в систему для просмотра профиля";
+                MessageBox.Show("Пожалуйста, войдите в систему", "Авторизация",
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                AllGamesBtn.IsChecked = true;
+                return;
             }
-            else
-            {
-                StatusText.Text = "❌ Войдите в систему";
-            }
+
+            UpdateContent();
         }
 
-        
         private async void SearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             var searchText = SearchTextBox.Text.ToLower();
 
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                await LoadGamesAsync();
+                if (AllGamesBtn.IsChecked == true || MainMenuBtn.IsChecked == true)
+                {
+                    await LoadGamesAsync();
+                }
+                else if (LibraryBtn.IsChecked == true && CurrentUser != null)
+                {
+                    await LoadUserLibraryAsync();
+                }
                 return;
             }
 
-            
             try
             {
+                
                 var allGames = await _apiService.GetGamesAsync();
                 var filteredGames = allGames.FindAll(g =>
                     g.GameName.ToLower().Contains(searchText) ||
@@ -184,7 +246,6 @@ namespace GameStore.Client
             }
         }
 
-        
         private async void BuyButton_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentUser == null)
@@ -202,6 +263,14 @@ namespace GameStore.Client
                 try
                 {
                     
+                    if (CurrentUser.Balance < game.Price)
+                    {
+                        MessageBox.Show($"Недостаточно средств на балансе!\nТребуется: {game.Price} ₽\nНа балансе: {CurrentUser.Balance} ₽",
+                                      "Недостаточно средств",
+                                      MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
                     var userLibrary = new UserLibrary
                     {
                         UserId = CurrentUser.UserId,
@@ -213,6 +282,10 @@ namespace GameStore.Client
 
                     if (success)
                     {
+                        
+                        CurrentUser.Balance -= (decimal)game.Price;
+                        UpdateUserInfo();
+
                         MessageBox.Show($"Игра '{game.GameName}' успешно добавлена в библиотеку!", "Покупка",
                                       MessageBoxButton.OK, MessageBoxImage.Information);
                         StatusText.Text = $"✅ Игра '{game.GameName}' добавлена в библиотеку";
@@ -229,11 +302,6 @@ namespace GameStore.Client
                                   MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-        }
-
-        private void LoginButton_Click(object sender, RoutedEventArgs e)
-        {
-            
         }
     }
 }
