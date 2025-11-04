@@ -18,10 +18,10 @@ namespace GameStore.Client
         public MainWindow()
         {
             InitializeComponent();
-            
             LoginPage loginPage = new LoginPage();
             loginPage.ShowDialog();
             IsUser(loginPage);
+            this.DataContext = CurrentUser;
 
             _apiService = new ApiService();
             Games = new ObservableCollection<Game>();
@@ -34,6 +34,7 @@ namespace GameStore.Client
             ProfileBtn.Checked += ProfileBtn_Checked;
 
             Loaded += MainWindow_Loaded;
+
         }
 
         private void IsUser(LoginPage loginPage)
@@ -103,16 +104,16 @@ namespace GameStore.Client
 
         private void UpdateUserInfo()
         {
-            if (CurrentUser != null)
-            {
-                UserNameText.Text = CurrentUser.Login;
-                BalanceText.Text = $"Баланс: {CurrentUser.Balance} ₽";
-            }
-            else
-            {
-                UserNameText.Text = "Не авторизован";
-                BalanceText.Text = "Баланс: 0 ₽";
-            }
+            //if (CurrentUser != null)
+            //{
+            //    UserNameText.Text = CurrentUser.Login;
+            //    BalanceText.Text = $"Баланс: {CurrentUser.Balance} ₽";
+            //}
+            //else
+            //{
+            //    UserNameText.Text = "Не авторизован";
+            //    BalanceText.Text = "Баланс: 0 ₽";
+            //}
         }
 
         private void UpdateContent()

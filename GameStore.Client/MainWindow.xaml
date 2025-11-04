@@ -135,9 +135,9 @@
                         <Border Style="{StaticResource ModernCard}" Margin="0,20,0,0">
                             <StackPanel>
                                 <TextBlock Text="👤 Пользователь" Foreground="#C7D5E0" FontSize="12"/>
-                                <TextBlock x:Name="UserNameText" Text="user1" 
+                                <TextBlock x:Name="UserNameText" Text="{Binding Login}" 
                                           Foreground="#66C0F4" FontSize="14" FontWeight="Bold"/>
-                                <TextBlock x:Name="BalanceText" Text="Баланс: 100,00 ₽" 
+                                <TextBlock x:Name="BalanceText" Text="{Binding Balance}" 
                                           Foreground="#90BA3C" FontSize="12" Margin="0,5,0,0"/>
 
                                 <StackPanel Margin="0,10,0,0">
